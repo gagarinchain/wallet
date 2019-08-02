@@ -1,0 +1,56 @@
+{
+  "name": "wallet",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack -p",
+    "dev": "webpack-dev-server",
+    "test": "node ./node_modules/mocha/bin/mocha --compilers js:babel-core/register --require ./test/test_helper.jsx --require ignore-styles \"./test/**/*@(.js|.jsx)\""
+  },
+  "dependencies": {
+    "@nodeutils/defaults-deep": "^1.1.0",
+    "detect-dom-ready": "^1.0.2",
+    "libp2p": "~0.25.5",
+    "libp2p-bootstrap": "~0.9.7",
+    "libp2p-webrtc-star": "~0.16.1",
+    "libp2p-websocket-star": "~0.10.2",
+    "libp2p-delegated-content-routing": "~0.3.0",
+    "libp2p-delegated-peer-routing": "~0.3.0",
+    "libp2p-kad-dht": "~0.15.2",
+    "libp2p-mdns": "~0.12.3",
+    "libp2p-mplex": "~0.8.5",
+    "libp2p-pnet": "~0.1.0",
+    "libp2p-secio": "~0.11.1",
+    "libp2p-spdy": "~0.13.3",
+    "libp2p-tcp": "~0.13.0",
+    "libp2p-websockets": "~0.12.2",
+    "libp2p-gossipsub": "~0.0.3",
+    "peer-info": "~0.15.1",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "0.9.x",
+    "protobufjs": "^6.8.8",
+    "multihashes": "^0.4.15",
+    "js-sha3": "^0.8.0",
+    "secp256k1": "^3.7.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.4",
+    "@babel/plugin-transform-regenerator": "^7.4.5",
+    "@babel/preset-env": "^7.5.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.36.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.7.2",
+    "css-loader": "^3.0.0",
+    "file-loader": "^4.0.0",
+    "style-loader": "^0.23.1",
+    "copy-webpack-plugin": "^4.0.1",
+    "url-loader": "^2.0.1"
+  },
+  "resolutions": {
+    "**/**/fsevents": "^1.2.9"
+  }
+}
