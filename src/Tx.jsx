@@ -28,7 +28,6 @@ class Tx extends Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleTabChange = this.handleTabChange.bind(this);
 
         createNode((err, node) => {
             if (err) {
@@ -78,8 +77,8 @@ class Tx extends Component {
                     type:
                     <select name="type" value={this.state.type} onChange={this.handleChange} >
                         <option value={0}>Payment</option>
-                        <option value={1}>Settlement</option>
-                        <option value={2}>Proof</option>
+                        <option value={2}>Settlement</option>
+                        <option value={4}>Proof</option>
                     </select>
                 </div>
                 <div className="row">
@@ -128,16 +127,15 @@ class Tx extends Component {
         node.stop((err) => {});
     }
 
-    handleTabChange(tabIndex) {
-        this.setState({
-            tabIndex : tabIndex
-        })
-    }
-
     handleChange(event) {
         this.setState({
             [event.target.name]: event.target.value
         });
+        if (event.target.name === "type" && event.target.value == 1) {
+            this.setState({
+                to: "0x6522b1ac0c0c078f1fcc696b9cf72c59bb3624b7d2a9d82059b2f3832fd9973d"
+            });
+        }
     }
 
     handleSubmit(event) {
