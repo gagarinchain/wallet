@@ -3,9 +3,10 @@ import ReactDom from "react-dom";
 import logo from './logo.svg';
 import './App.css';
 import createNode from './Node.js'
-import {Message, Transaction, google} from '../protos.js'
-import ec from 'secp256k1/elliptic'
+import {Message, Transaction, Signature, google} from '../protos.js'
+import * as bls from "noble-bls12-381";
 import {keccak256} from 'js-sha3'
+import "@babel/polyfill"
 
 const GossipSub = require('libp2p-gossipsub');
 
@@ -146,34 +147,44 @@ class App extends Component {
             });
         let txbytes = Transaction.encode(tx).finish();
 
-        ec.privateKeyVerify(key);
-        let sign = ec.sign(Buffer.from(keccak256.arrayBuffer(txbytes)), key);
+        (async () => {
+            return await bls.sign(Buffer.from(keccak256.arrayBuffer(txbytes)), key, 0)
+        })().then( (sign) =>{
+            console.log("sign: ", sign);
 
-        //we add recovery byte(0,1,2,3) to signature, since we use it to recover signers pub key
-        tx.signature = Buffer.concat([sign.signature, Buffer.from([sign.recovery.toString()])]);
-        console.log("sign: ", tx.signature);
+            let publicKey = bls.getPublicKey(key);
+            tx.signature = Signature.create({
+                from: publicKey,
+                signature: sign
 
-        let any = google.protobuf.Any.create(
-            {
-                type_url:"type.googleapis.com/Transaction",
-                value:Transaction.encode(tx).finish()
-            }
-        );
-        let m = Message.create(
-            {
-                type:Message.MessageType.TRANSACTION,
-                payload: any
-            }
-        );
+            });
 
-        let buf = Message.encode(m).finish();
-        console.log("sending: " + buf.toString());
+            let any = google.protobuf.Any.create(
+                {
+                    type_url:"type.googleapis.com/Transaction",
+                    value:Transaction.encode(tx).finish()
+                }
+            );
+            let m = Message.create(
+                {
+                    type:Message.MessageType.TRANSACTION,
+                    payload: any
+                }
+            );
 
-        n.pubsub.publish('/tx', [new Buffer(buf)], (err) => {
-            if (err) {
-                return console.log(err)
-            }
+            let buf = Message.encode(m).finish();
+            console.log("sending: " + buf.toString());
+
+            //todo add sending to 4 peers instead of multicast
+            n.pubsub.publish('/tx', [new Buffer(buf)], (err) => {
+                if (err) {
+                    return console.log(err)
+                }
+            });
+
+
         });
+
 
         event.preventDefault();
     }

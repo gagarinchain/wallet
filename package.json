@@ -33,11 +33,14 @@
     "protobufjs": "^6.8.8",
     "multihashes": "^0.4.15",
     "js-sha3": "^0.8.0",
-    "secp256k1": "^3.7.1"
+    "noble-bls12-381": "^0.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.5.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-export-default-from": "^7.5.2",
     "@babel/plugin-transform-regenerator": "^7.4.5",
+    "@babel/polyfill": "^7.6.0",
     "@babel/preset-env": "^7.5.4",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.6",

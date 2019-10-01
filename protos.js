@@ -546,8 +546,8 @@ $root.EpochStartPayload = (function() {
      * @exports IEpochStartPayload
      * @interface IEpochStartPayload
      * @property {IQuorumCertificate|null} [cert] EpochStartPayload cert
-     * @property {Uint8Array|null} [genesisSignature] EpochStartPayload genesisSignature
-     * @property {Uint8Array|null} [signature] EpochStartPayload signature
+     * @property {ISignature|null} [genesisSignature] EpochStartPayload genesisSignature
+     * @property {ISignature|null} [signature] EpochStartPayload signature
      * @property {number|null} [epochNumber] EpochStartPayload epochNumber
      */
 
@@ -576,19 +576,19 @@ $root.EpochStartPayload = (function() {
 
     /**
      * EpochStartPayload genesisSignature.
-     * @member {Uint8Array} genesisSignature
+     * @member {ISignature|null|undefined} genesisSignature
      * @memberof EpochStartPayload
      * @instance
      */
-    EpochStartPayload.prototype.genesisSignature = $util.newBuffer([]);
+    EpochStartPayload.prototype.genesisSignature = null;
 
     /**
      * EpochStartPayload signature.
-     * @member {Uint8Array} signature
+     * @member {ISignature|null|undefined} signature
      * @memberof EpochStartPayload
      * @instance
      */
-    EpochStartPayload.prototype.signature = $util.newBuffer([]);
+    EpochStartPayload.prototype.signature = null;
 
     /**
      * EpochStartPayload epochNumber.
@@ -639,9 +639,9 @@ $root.EpochStartPayload = (function() {
         if (message.cert != null && message.hasOwnProperty("cert"))
             $root.QuorumCertificate.encode(message.cert, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
         if (message.genesisSignature != null && message.hasOwnProperty("genesisSignature"))
-            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.genesisSignature);
+            $root.Signature.encode(message.genesisSignature, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         if (message.signature != null && message.hasOwnProperty("signature"))
-            writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.signature);
+            $root.Signature.encode(message.signature, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
         if (message.epochNumber != null && message.hasOwnProperty("epochNumber"))
             writer.uint32(/* id 4, wireType 0 =*/32).int32(message.epochNumber);
         return writer;
@@ -682,10 +682,10 @@ $root.EpochStartPayload = (function() {
                 message.cert = $root.QuorumCertificate.decode(reader, reader.uint32());
                 break;
             case 2:
-                message.genesisSignature = reader.bytes();
+                message.genesisSignature = $root.Signature.decode(reader, reader.uint32());
                 break;
             case 3:
-                message.signature = reader.bytes();
+                message.signature = $root.Signature.decode(reader, reader.uint32());
                 break;
             case 4:
                 message.epochNumber = reader.int32();
@@ -738,12 +738,17 @@ $root.EpochStartPayload = (function() {
             if (properties.body === 1)
                 return "body: multiple values";
             properties.body = 1;
-            if (!(message.genesisSignature && typeof message.genesisSignature.length === "number" || $util.isString(message.genesisSignature)))
-                return "genesisSignature: buffer expected";
+            {
+                var error = $root.Signature.verify(message.genesisSignature);
+                if (error)
+                    return "genesisSignature." + error;
+            }
         }
-        if (message.signature != null && message.hasOwnProperty("signature"))
-            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                return "signature: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature")) {
+            var error = $root.Signature.verify(message.signature);
+            if (error)
+                return "signature." + error;
+        }
         if (message.epochNumber != null && message.hasOwnProperty("epochNumber"))
             if (!$util.isInteger(message.epochNumber))
                 return "epochNumber: integer expected";
@@ -767,16 +772,16 @@ $root.EpochStartPayload = (function() {
                 throw TypeError(".EpochStartPayload.cert: object expected");
             message.cert = $root.QuorumCertificate.fromObject(object.cert);
         }
-        if (object.genesisSignature != null)
-            if (typeof object.genesisSignature === "string")
-                $util.base64.decode(object.genesisSignature, message.genesisSignature = $util.newBuffer($util.base64.length(object.genesisSignature)), 0);
-            else if (object.genesisSignature.length)
-                message.genesisSignature = object.genesisSignature;
-        if (object.signature != null)
-            if (typeof object.signature === "string")
-                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
-            else if (object.signature.length)
-                message.signature = object.signature;
+        if (object.genesisSignature != null) {
+            if (typeof object.genesisSignature !== "object")
+                throw TypeError(".EpochStartPayload.genesisSignature: object expected");
+            message.genesisSignature = $root.Signature.fromObject(object.genesisSignature);
+        }
+        if (object.signature != null) {
+            if (typeof object.signature !== "object")
+                throw TypeError(".EpochStartPayload.signature: object expected");
+            message.signature = $root.Signature.fromObject(object.signature);
+        }
         if (object.epochNumber != null)
             message.epochNumber = object.epochNumber | 0;
         return message;
@@ -796,13 +801,7 @@ $root.EpochStartPayload = (function() {
             options = {};
         var object = {};
         if (options.defaults) {
-            if (options.bytes === String)
-                object.signature = "";
-            else {
-                object.signature = [];
-                if (options.bytes !== Array)
-                    object.signature = $util.newBuffer(object.signature);
-            }
+            object.signature = null;
             object.epochNumber = 0;
         }
         if (message.cert != null && message.hasOwnProperty("cert")) {
@@ -811,12 +810,12 @@ $root.EpochStartPayload = (function() {
                 object.body = "cert";
         }
         if (message.genesisSignature != null && message.hasOwnProperty("genesisSignature")) {
-            object.genesisSignature = options.bytes === String ? $util.base64.encode(message.genesisSignature, 0, message.genesisSignature.length) : options.bytes === Array ? Array.prototype.slice.call(message.genesisSignature) : message.genesisSignature;
+            object.genesisSignature = $root.Signature.toObject(message.genesisSignature, options);
             if (options.oneofs)
                 object.body = "genesisSignature";
         }
         if (message.signature != null && message.hasOwnProperty("signature"))
-            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+            object.signature = $root.Signature.toObject(message.signature, options);
         if (message.epochNumber != null && message.hasOwnProperty("epochNumber"))
             object.epochNumber = message.epochNumber;
         return object;
@@ -843,7 +842,7 @@ $root.ProposalPayload = (function() {
      * @exports IProposalPayload
      * @interface IProposalPayload
      * @property {IQuorumCertificate|null} [cert] ProposalPayload cert
-     * @property {Uint8Array|null} [signature] ProposalPayload signature
+     * @property {ISignature|null} [signature] ProposalPayload signature
      * @property {IBlock|null} [block] ProposalPayload block
      */
 
@@ -872,11 +871,11 @@ $root.ProposalPayload = (function() {
 
     /**
      * ProposalPayload signature.
-     * @member {Uint8Array} signature
+     * @member {ISignature|null|undefined} signature
      * @memberof ProposalPayload
      * @instance
      */
-    ProposalPayload.prototype.signature = $util.newBuffer([]);
+    ProposalPayload.prototype.signature = null;
 
     /**
      * ProposalPayload block.
@@ -913,7 +912,7 @@ $root.ProposalPayload = (function() {
         if (message.cert != null && message.hasOwnProperty("cert"))
             $root.QuorumCertificate.encode(message.cert, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
         if (message.signature != null && message.hasOwnProperty("signature"))
-            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signature);
+            $root.Signature.encode(message.signature, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         if (message.block != null && message.hasOwnProperty("block"))
             $root.Block.encode(message.block, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
         return writer;
@@ -954,7 +953,7 @@ $root.ProposalPayload = (function() {
                 message.cert = $root.QuorumCertificate.decode(reader, reader.uint32());
                 break;
             case 2:
-                message.signature = reader.bytes();
+                message.signature = $root.Signature.decode(reader, reader.uint32());
                 break;
             case 3:
                 message.block = $root.Block.decode(reader, reader.uint32());
@@ -999,9 +998,11 @@ $root.ProposalPayload = (function() {
             if (error)
                 return "cert." + error;
         }
-        if (message.signature != null && message.hasOwnProperty("signature"))
-            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                return "signature: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature")) {
+            var error = $root.Signature.verify(message.signature);
+            if (error)
+                return "signature." + error;
+        }
         if (message.block != null && message.hasOwnProperty("block")) {
             var error = $root.Block.verify(message.block);
             if (error)
@@ -1027,11 +1028,11 @@ $root.ProposalPayload = (function() {
                 throw TypeError(".ProposalPayload.cert: object expected");
             message.cert = $root.QuorumCertificate.fromObject(object.cert);
         }
-        if (object.signature != null)
-            if (typeof object.signature === "string")
-                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
-            else if (object.signature.length)
-                message.signature = object.signature;
+        if (object.signature != null) {
+            if (typeof object.signature !== "object")
+                throw TypeError(".ProposalPayload.signature: object expected");
+            message.signature = $root.Signature.fromObject(object.signature);
+        }
         if (object.block != null) {
             if (typeof object.block !== "object")
                 throw TypeError(".ProposalPayload.block: object expected");
@@ -1055,19 +1056,13 @@ $root.ProposalPayload = (function() {
         var object = {};
         if (options.defaults) {
             object.cert = null;
-            if (options.bytes === String)
-                object.signature = "";
-            else {
-                object.signature = [];
-                if (options.bytes !== Array)
-                    object.signature = $util.newBuffer(object.signature);
-            }
+            object.signature = null;
             object.block = null;
         }
         if (message.cert != null && message.hasOwnProperty("cert"))
             object.cert = $root.QuorumCertificate.toObject(message.cert, options);
         if (message.signature != null && message.hasOwnProperty("signature"))
-            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+            object.signature = $root.Signature.toObject(message.signature, options);
         if (message.block != null && message.hasOwnProperty("block"))
             object.block = $root.Block.toObject(message.block, options);
         return object;
@@ -1094,7 +1089,7 @@ $root.VotePayload = (function() {
      * @exports IVotePayload
      * @interface IVotePayload
      * @property {IQuorumCertificate|null} [cert] VotePayload cert
-     * @property {Uint8Array|null} [signature] VotePayload signature
+     * @property {ISignature|null} [signature] VotePayload signature
      * @property {IBlockHeader|null} [header] VotePayload header
      */
 
@@ -1123,11 +1118,11 @@ $root.VotePayload = (function() {
 
     /**
      * VotePayload signature.
-     * @member {Uint8Array} signature
+     * @member {ISignature|null|undefined} signature
      * @memberof VotePayload
      * @instance
      */
-    VotePayload.prototype.signature = $util.newBuffer([]);
+    VotePayload.prototype.signature = null;
 
     /**
      * VotePayload header.
@@ -1164,7 +1159,7 @@ $root.VotePayload = (function() {
         if (message.cert != null && message.hasOwnProperty("cert"))
             $root.QuorumCertificate.encode(message.cert, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
         if (message.signature != null && message.hasOwnProperty("signature"))
-            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signature);
+            $root.Signature.encode(message.signature, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         if (message.header != null && message.hasOwnProperty("header"))
             $root.BlockHeader.encode(message.header, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
         return writer;
@@ -1205,7 +1200,7 @@ $root.VotePayload = (function() {
                 message.cert = $root.QuorumCertificate.decode(reader, reader.uint32());
                 break;
             case 2:
-                message.signature = reader.bytes();
+                message.signature = $root.Signature.decode(reader, reader.uint32());
                 break;
             case 3:
                 message.header = $root.BlockHeader.decode(reader, reader.uint32());
@@ -1250,9 +1245,11 @@ $root.VotePayload = (function() {
             if (error)
                 return "cert." + error;
         }
-        if (message.signature != null && message.hasOwnProperty("signature"))
-            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                return "signature: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature")) {
+            var error = $root.Signature.verify(message.signature);
+            if (error)
+                return "signature." + error;
+        }
         if (message.header != null && message.hasOwnProperty("header")) {
             var error = $root.BlockHeader.verify(message.header);
             if (error)
@@ -1278,11 +1275,11 @@ $root.VotePayload = (function() {
                 throw TypeError(".VotePayload.cert: object expected");
             message.cert = $root.QuorumCertificate.fromObject(object.cert);
         }
-        if (object.signature != null)
-            if (typeof object.signature === "string")
-                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
-            else if (object.signature.length)
-                message.signature = object.signature;
+        if (object.signature != null) {
+            if (typeof object.signature !== "object")
+                throw TypeError(".VotePayload.signature: object expected");
+            message.signature = $root.Signature.fromObject(object.signature);
+        }
         if (object.header != null) {
             if (typeof object.header !== "object")
                 throw TypeError(".VotePayload.header: object expected");
@@ -1306,19 +1303,13 @@ $root.VotePayload = (function() {
         var object = {};
         if (options.defaults) {
             object.cert = null;
-            if (options.bytes === String)
-                object.signature = "";
-            else {
-                object.signature = [];
-                if (options.bytes !== Array)
-                    object.signature = $util.newBuffer(object.signature);
-            }
+            object.signature = null;
             object.header = null;
         }
         if (message.cert != null && message.hasOwnProperty("cert"))
             object.cert = $root.QuorumCertificate.toObject(message.cert, options);
         if (message.signature != null && message.hasOwnProperty("signature"))
-            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+            object.signature = $root.Signature.toObject(message.signature, options);
         if (message.header != null && message.hasOwnProperty("header"))
             object.header = $root.BlockHeader.toObject(message.header, options);
         return object;
@@ -1336,6 +1327,462 @@ $root.VotePayload = (function() {
     };
 
     return VotePayload;
+})();
+
+$root.Signature = (function() {
+
+    /**
+     * Properties of a Signature.
+     * @exports ISignature
+     * @interface ISignature
+     * @property {Uint8Array|null} [from] Signature from
+     * @property {Uint8Array|null} [signature] Signature signature
+     */
+
+    /**
+     * Constructs a new Signature.
+     * @exports Signature
+     * @classdesc Represents a Signature.
+     * @implements ISignature
+     * @constructor
+     * @param {ISignature=} [properties] Properties to set
+     */
+    function Signature(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * Signature from.
+     * @member {Uint8Array} from
+     * @memberof Signature
+     * @instance
+     */
+    Signature.prototype.from = $util.newBuffer([]);
+
+    /**
+     * Signature signature.
+     * @member {Uint8Array} signature
+     * @memberof Signature
+     * @instance
+     */
+    Signature.prototype.signature = $util.newBuffer([]);
+
+    /**
+     * Creates a new Signature instance using the specified properties.
+     * @function create
+     * @memberof Signature
+     * @static
+     * @param {ISignature=} [properties] Properties to set
+     * @returns {Signature} Signature instance
+     */
+    Signature.create = function create(properties) {
+        return new Signature(properties);
+    };
+
+    /**
+     * Encodes the specified Signature message. Does not implicitly {@link Signature.verify|verify} messages.
+     * @function encode
+     * @memberof Signature
+     * @static
+     * @param {ISignature} message Signature message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Signature.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.from != null && message.hasOwnProperty("from"))
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.from);
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signature);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified Signature message, length delimited. Does not implicitly {@link Signature.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof Signature
+     * @static
+     * @param {ISignature} message Signature message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    Signature.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a Signature message from the specified reader or buffer.
+     * @function decode
+     * @memberof Signature
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {Signature} Signature
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Signature.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.Signature();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.from = reader.bytes();
+                break;
+            case 2:
+                message.signature = reader.bytes();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a Signature message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof Signature
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {Signature} Signature
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    Signature.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a Signature message.
+     * @function verify
+     * @memberof Signature
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    Signature.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.from != null && message.hasOwnProperty("from"))
+            if (!(message.from && typeof message.from.length === "number" || $util.isString(message.from)))
+                return "from: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
+                return "signature: buffer expected";
+        return null;
+    };
+
+    /**
+     * Creates a Signature message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof Signature
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {Signature} Signature
+     */
+    Signature.fromObject = function fromObject(object) {
+        if (object instanceof $root.Signature)
+            return object;
+        var message = new $root.Signature();
+        if (object.from != null)
+            if (typeof object.from === "string")
+                $util.base64.decode(object.from, message.from = $util.newBuffer($util.base64.length(object.from)), 0);
+            else if (object.from.length)
+                message.from = object.from;
+        if (object.signature != null)
+            if (typeof object.signature === "string")
+                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
+            else if (object.signature.length)
+                message.signature = object.signature;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a Signature message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof Signature
+     * @static
+     * @param {Signature} message Signature
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    Signature.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            if (options.bytes === String)
+                object.from = "";
+            else {
+                object.from = [];
+                if (options.bytes !== Array)
+                    object.from = $util.newBuffer(object.from);
+            }
+            if (options.bytes === String)
+                object.signature = "";
+            else {
+                object.signature = [];
+                if (options.bytes !== Array)
+                    object.signature = $util.newBuffer(object.signature);
+            }
+        }
+        if (message.from != null && message.hasOwnProperty("from"))
+            object.from = options.bytes === String ? $util.base64.encode(message.from, 0, message.from.length) : options.bytes === Array ? Array.prototype.slice.call(message.from) : message.from;
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+        return object;
+    };
+
+    /**
+     * Converts this Signature to JSON.
+     * @function toJSON
+     * @memberof Signature
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    Signature.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return Signature;
+})();
+
+$root.SignatureAggregate = (function() {
+
+    /**
+     * Properties of a SignatureAggregate.
+     * @exports ISignatureAggregate
+     * @interface ISignatureAggregate
+     * @property {Uint8Array|null} [bitmap] SignatureAggregate bitmap
+     * @property {Uint8Array|null} [signature] SignatureAggregate signature
+     */
+
+    /**
+     * Constructs a new SignatureAggregate.
+     * @exports SignatureAggregate
+     * @classdesc Represents a SignatureAggregate.
+     * @implements ISignatureAggregate
+     * @constructor
+     * @param {ISignatureAggregate=} [properties] Properties to set
+     */
+    function SignatureAggregate(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * SignatureAggregate bitmap.
+     * @member {Uint8Array} bitmap
+     * @memberof SignatureAggregate
+     * @instance
+     */
+    SignatureAggregate.prototype.bitmap = $util.newBuffer([]);
+
+    /**
+     * SignatureAggregate signature.
+     * @member {Uint8Array} signature
+     * @memberof SignatureAggregate
+     * @instance
+     */
+    SignatureAggregate.prototype.signature = $util.newBuffer([]);
+
+    /**
+     * Creates a new SignatureAggregate instance using the specified properties.
+     * @function create
+     * @memberof SignatureAggregate
+     * @static
+     * @param {ISignatureAggregate=} [properties] Properties to set
+     * @returns {SignatureAggregate} SignatureAggregate instance
+     */
+    SignatureAggregate.create = function create(properties) {
+        return new SignatureAggregate(properties);
+    };
+
+    /**
+     * Encodes the specified SignatureAggregate message. Does not implicitly {@link SignatureAggregate.verify|verify} messages.
+     * @function encode
+     * @memberof SignatureAggregate
+     * @static
+     * @param {ISignatureAggregate} message SignatureAggregate message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    SignatureAggregate.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.bitmap != null && message.hasOwnProperty("bitmap"))
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.bitmap);
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signature);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified SignatureAggregate message, length delimited. Does not implicitly {@link SignatureAggregate.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof SignatureAggregate
+     * @static
+     * @param {ISignatureAggregate} message SignatureAggregate message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    SignatureAggregate.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a SignatureAggregate message from the specified reader or buffer.
+     * @function decode
+     * @memberof SignatureAggregate
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {SignatureAggregate} SignatureAggregate
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    SignatureAggregate.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.SignatureAggregate();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.bitmap = reader.bytes();
+                break;
+            case 2:
+                message.signature = reader.bytes();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a SignatureAggregate message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof SignatureAggregate
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {SignatureAggregate} SignatureAggregate
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    SignatureAggregate.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a SignatureAggregate message.
+     * @function verify
+     * @memberof SignatureAggregate
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    SignatureAggregate.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.bitmap != null && message.hasOwnProperty("bitmap"))
+            if (!(message.bitmap && typeof message.bitmap.length === "number" || $util.isString(message.bitmap)))
+                return "bitmap: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
+                return "signature: buffer expected";
+        return null;
+    };
+
+    /**
+     * Creates a SignatureAggregate message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof SignatureAggregate
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {SignatureAggregate} SignatureAggregate
+     */
+    SignatureAggregate.fromObject = function fromObject(object) {
+        if (object instanceof $root.SignatureAggregate)
+            return object;
+        var message = new $root.SignatureAggregate();
+        if (object.bitmap != null)
+            if (typeof object.bitmap === "string")
+                $util.base64.decode(object.bitmap, message.bitmap = $util.newBuffer($util.base64.length(object.bitmap)), 0);
+            else if (object.bitmap.length)
+                message.bitmap = object.bitmap;
+        if (object.signature != null)
+            if (typeof object.signature === "string")
+                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
+            else if (object.signature.length)
+                message.signature = object.signature;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a SignatureAggregate message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof SignatureAggregate
+     * @static
+     * @param {SignatureAggregate} message SignatureAggregate
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    SignatureAggregate.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults) {
+            if (options.bytes === String)
+                object.bitmap = "";
+            else {
+                object.bitmap = [];
+                if (options.bytes !== Array)
+                    object.bitmap = $util.newBuffer(object.bitmap);
+            }
+            if (options.bytes === String)
+                object.signature = "";
+            else {
+                object.signature = [];
+                if (options.bytes !== Array)
+                    object.signature = $util.newBuffer(object.signature);
+            }
+        }
+        if (message.bitmap != null && message.hasOwnProperty("bitmap"))
+            object.bitmap = options.bytes === String ? $util.base64.encode(message.bitmap, 0, message.bitmap.length) : options.bytes === Array ? Array.prototype.slice.call(message.bitmap) : message.bitmap;
+        if (message.signature != null && message.hasOwnProperty("signature"))
+            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+        return object;
+    };
+
+    /**
+     * Converts this SignatureAggregate to JSON.
+     * @function toJSON
+     * @memberof SignatureAggregate
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    SignatureAggregate.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return SignatureAggregate;
 })();
 
 $root.BlockRequestPayload = (function() {
@@ -2046,7 +2493,7 @@ $root.QuorumCertificate = (function() {
      * @exports IQuorumCertificate
      * @interface IQuorumCertificate
      * @property {IBlockHeader|null} [header] QuorumCertificate header
-     * @property {Uint8Array|null} [signatureAggregate] QuorumCertificate signatureAggregate
+     * @property {ISignatureAggregate|null} [signatureAggregate] QuorumCertificate signatureAggregate
      */
 
     /**
@@ -2074,11 +2521,11 @@ $root.QuorumCertificate = (function() {
 
     /**
      * QuorumCertificate signatureAggregate.
-     * @member {Uint8Array} signatureAggregate
+     * @member {ISignatureAggregate|null|undefined} signatureAggregate
      * @memberof QuorumCertificate
      * @instance
      */
-    QuorumCertificate.prototype.signatureAggregate = $util.newBuffer([]);
+    QuorumCertificate.prototype.signatureAggregate = null;
 
     /**
      * Creates a new QuorumCertificate instance using the specified properties.
@@ -2107,7 +2554,7 @@ $root.QuorumCertificate = (function() {
         if (message.header != null && message.hasOwnProperty("header"))
             $root.BlockHeader.encode(message.header, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
         if (message.signatureAggregate != null && message.hasOwnProperty("signatureAggregate"))
-            writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signatureAggregate);
+            $root.SignatureAggregate.encode(message.signatureAggregate, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         return writer;
     };
 
@@ -2146,7 +2593,7 @@ $root.QuorumCertificate = (function() {
                 message.header = $root.BlockHeader.decode(reader, reader.uint32());
                 break;
             case 2:
-                message.signatureAggregate = reader.bytes();
+                message.signatureAggregate = $root.SignatureAggregate.decode(reader, reader.uint32());
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -2188,9 +2635,11 @@ $root.QuorumCertificate = (function() {
             if (error)
                 return "header." + error;
         }
-        if (message.signatureAggregate != null && message.hasOwnProperty("signatureAggregate"))
-            if (!(message.signatureAggregate && typeof message.signatureAggregate.length === "number" || $util.isString(message.signatureAggregate)))
-                return "signatureAggregate: buffer expected";
+        if (message.signatureAggregate != null && message.hasOwnProperty("signatureAggregate")) {
+            var error = $root.SignatureAggregate.verify(message.signatureAggregate);
+            if (error)
+                return "signatureAggregate." + error;
+        }
         return null;
     };
 
@@ -2211,11 +2660,11 @@ $root.QuorumCertificate = (function() {
                 throw TypeError(".QuorumCertificate.header: object expected");
             message.header = $root.BlockHeader.fromObject(object.header);
         }
-        if (object.signatureAggregate != null)
-            if (typeof object.signatureAggregate === "string")
-                $util.base64.decode(object.signatureAggregate, message.signatureAggregate = $util.newBuffer($util.base64.length(object.signatureAggregate)), 0);
-            else if (object.signatureAggregate.length)
-                message.signatureAggregate = object.signatureAggregate;
+        if (object.signatureAggregate != null) {
+            if (typeof object.signatureAggregate !== "object")
+                throw TypeError(".QuorumCertificate.signatureAggregate: object expected");
+            message.signatureAggregate = $root.SignatureAggregate.fromObject(object.signatureAggregate);
+        }
         return message;
     };
 
@@ -2234,18 +2683,12 @@ $root.QuorumCertificate = (function() {
         var object = {};
         if (options.defaults) {
             object.header = null;
-            if (options.bytes === String)
-                object.signatureAggregate = "";
-            else {
-                object.signatureAggregate = [];
-                if (options.bytes !== Array)
-                    object.signatureAggregate = $util.newBuffer(object.signatureAggregate);
-            }
+            object.signatureAggregate = null;
         }
         if (message.header != null && message.hasOwnProperty("header"))
             object.header = $root.BlockHeader.toObject(message.header, options);
         if (message.signatureAggregate != null && message.hasOwnProperty("signatureAggregate"))
-            object.signatureAggregate = options.bytes === String ? $util.base64.encode(message.signatureAggregate, 0, message.signatureAggregate.length) : options.bytes === Array ? Array.prototype.slice.call(message.signatureAggregate) : message.signatureAggregate;
+            object.signatureAggregate = $root.SignatureAggregate.toObject(message.signatureAggregate, options);
         return object;
     };
 
@@ -3379,7 +3822,7 @@ $root.Transaction = (function() {
      * @property {number|Long|null} [nonce] Transaction nonce
      * @property {number|Long|null} [value] Transaction value
      * @property {number|Long|null} [fee] Transaction fee
-     * @property {Uint8Array|null} [signature] Transaction signature
+     * @property {ISignature|null} [signature] Transaction signature
      * @property {Uint8Array|null} [data] Transaction data
      */
 
@@ -3440,11 +3883,11 @@ $root.Transaction = (function() {
 
     /**
      * Transaction signature.
-     * @member {Uint8Array} signature
+     * @member {ISignature|null|undefined} signature
      * @memberof Transaction
      * @instance
      */
-    Transaction.prototype.signature = $util.newBuffer([]);
+    Transaction.prototype.signature = null;
 
     /**
      * Transaction data.
@@ -3489,7 +3932,7 @@ $root.Transaction = (function() {
         if (message.fee != null && message.hasOwnProperty("fee"))
             writer.uint32(/* id 5, wireType 0 =*/40).int64(message.fee);
         if (message.signature != null && message.hasOwnProperty("signature"))
-            writer.uint32(/* id 6, wireType 2 =*/50).bytes(message.signature);
+            $root.Signature.encode(message.signature, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
         if (message.data != null && message.hasOwnProperty("data"))
             writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.data);
         return writer;
@@ -3542,7 +3985,7 @@ $root.Transaction = (function() {
                 message.fee = reader.int64();
                 break;
             case 6:
-                message.signature = reader.bytes();
+                message.signature = $root.Signature.decode(reader, reader.uint32());
                 break;
             case 7:
                 message.data = reader.bytes();
@@ -3588,6 +4031,9 @@ $root.Transaction = (function() {
                 return "type: enum value expected";
             case 0:
             case 1:
+            case 2:
+            case 3:
+            case 4:
                 break;
             }
         if (message.to != null && message.hasOwnProperty("to"))
@@ -3602,9 +4048,11 @@ $root.Transaction = (function() {
         if (message.fee != null && message.hasOwnProperty("fee"))
             if (!$util.isInteger(message.fee) && !(message.fee && $util.isInteger(message.fee.low) && $util.isInteger(message.fee.high)))
                 return "fee: integer|Long expected";
-        if (message.signature != null && message.hasOwnProperty("signature"))
-            if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                return "signature: buffer expected";
+        if (message.signature != null && message.hasOwnProperty("signature")) {
+            var error = $root.Signature.verify(message.signature);
+            if (error)
+                return "signature." + error;
+        }
         if (message.data != null && message.hasOwnProperty("data"))
             if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
                 return "data: buffer expected";
@@ -3631,6 +4079,18 @@ $root.Transaction = (function() {
         case "SLASHING":
         case 1:
             message.type = 1;
+            break;
+        case "SETTLEMENT":
+        case 2:
+            message.type = 2;
+            break;
+        case "AGREEMENT":
+        case 3:
+            message.type = 3;
+            break;
+        case "PROOF":
+        case 4:
+            message.type = 4;
             break;
         }
         if (object.to != null)
@@ -3665,11 +4125,11 @@ $root.Transaction = (function() {
                 message.fee = object.fee;
             else if (typeof object.fee === "object")
                 message.fee = new $util.LongBits(object.fee.low >>> 0, object.fee.high >>> 0).toNumber();
-        if (object.signature != null)
-            if (typeof object.signature === "string")
-                $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
-            else if (object.signature.length)
-                message.signature = object.signature;
+        if (object.signature != null) {
+            if (typeof object.signature !== "object")
+                throw TypeError(".Transaction.signature: object expected");
+            message.signature = $root.Signature.fromObject(object.signature);
+        }
         if (object.data != null)
             if (typeof object.data === "string")
                 $util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
@@ -3715,13 +4175,7 @@ $root.Transaction = (function() {
                 object.fee = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
             } else
                 object.fee = options.longs === String ? "0" : 0;
-            if (options.bytes === String)
-                object.signature = "";
-            else {
-                object.signature = [];
-                if (options.bytes !== Array)
-                    object.signature = $util.newBuffer(object.signature);
-            }
+            object.signature = null;
             if (options.bytes === String)
                 object.data = "";
             else {
@@ -3750,7 +4204,7 @@ $root.Transaction = (function() {
             else
                 object.fee = options.longs === String ? $util.Long.prototype.toString.call(message.fee) : options.longs === Number ? new $util.LongBits(message.fee.low >>> 0, message.fee.high >>> 0).toNumber() : message.fee;
         if (message.signature != null && message.hasOwnProperty("signature"))
-            object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+            object.signature = $root.Signature.toObject(message.signature, options);
         if (message.data != null && message.hasOwnProperty("data"))
             object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
         return object;
@@ -3773,11 +4227,17 @@ $root.Transaction = (function() {
      * @enum {string}
      * @property {number} PAYMENT=0 PAYMENT value
      * @property {number} SLASHING=1 SLASHING value
+     * @property {number} SETTLEMENT=2 SETTLEMENT value
+     * @property {number} AGREEMENT=3 AGREEMENT value
+     * @property {number} PROOF=4 PROOF value
      */
     Transaction.Type = (function() {
         var valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "PAYMENT"] = 0;
         values[valuesById[1] = "SLASHING"] = 1;
+        values[valuesById[2] = "SETTLEMENT"] = 2;
+        values[valuesById[3] = "AGREEMENT"] = 3;
+        values[valuesById[4] = "PROOF"] = 4;
         return values;
     })();
 

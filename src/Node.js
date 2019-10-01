@@ -14,7 +14,7 @@ const PeerInfo = require('peer-info');
 
 // Find this list at: https://github.com/ipfs/js-ipfs/blob/master/src/core/runtime/config-browser.json
 const bootstrapList = [
-    '/ip4/127.0.0.1/tcp/9181/ws/p2p/16Uiu2HAmNr4skStG12TSRgFy4X7hRT3Gm8Ums3tUzkWqFo5hqLNq',
+    '/ip4/127.0.0.1/tcp/9181/ws/p2p/16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm',
 ];
 
 class Node extends libp2p {

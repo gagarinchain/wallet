@@ -8,7 +8,7 @@ console.log("Building in " + JSON.stringify(project.env) + " mode");
 
 module.exports = {
     devtool: 'source-map',
-    entry: './index.js',
+    entry: ["@babel/polyfill", './index.js'],
     output: {
         path: path.join(__dirname, 'build'),
         filename: 'app-bundle.js'
