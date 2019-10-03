@@ -4,12 +4,13 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "build": "webpack -p",
+    "build": "webpack -d",
     "dev": "webpack-dev-server",
     "test": "node ./node_modules/mocha/bin/mocha --compilers js:babel-core/register --require ./test/test_helper.jsx --require ignore-styles \"./test/**/*@(.js|.jsx)\""
   },
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
+    "@babel/polyfill": "^7.6.0",
     "detect-dom-ready": "^1.0.2",
     "libp2p": "~0.25.5",
     "libp2p-bootstrap": "~0.9.7",
@@ -36,13 +37,12 @@
     "noble-bls12-381": "^0.2.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.4",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "@babel/preset-react": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-export-default-from": "^7.5.2",
     "@babel/plugin-transform-regenerator": "^7.4.5",
-    "@babel/polyfill": "^7.6.0",
-    "@babel/preset-env": "^7.5.4",
-    "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.6",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",

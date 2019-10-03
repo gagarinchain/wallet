@@ -1,4 +1,9 @@
 {
-  "presets": ["@babel/react"],
-  "plugins": ["transform-regenerator"]
+  "presets": [
+    ["@babel/preset-react"],
+    ["@babel/preset-env",
+    {
+      "useBuiltIns": "entry"
+    }]
+  ]
 }
