@@ -3208,23 +3208,23 @@ $root.Blocks = (function() {
 $root.BlockHeader = (function() {
 
     /**
-     * Properties of a BlockHeader.
+     * Properties of a BlockShort.
      * @exports IBlockHeader
      * @interface IBlockHeader
-     * @property {Uint8Array|null} [hash] BlockHeader hash
-     * @property {Uint8Array|null} [parentHash] BlockHeader parentHash
-     * @property {Uint8Array|null} [qcHash] BlockHeader qcHash
-     * @property {Uint8Array|null} [dataHash] BlockHeader dataHash
-     * @property {Uint8Array|null} [txHash] BlockHeader txHash
-     * @property {Uint8Array|null} [stateHash] BlockHeader stateHash
-     * @property {number|null} [height] BlockHeader height
-     * @property {number|Long|null} [timestamp] BlockHeader timestamp
+     * @property {Uint8Array|null} [hash] BlockShort hash
+     * @property {Uint8Array|null} [parentHash] BlockShort parentHash
+     * @property {Uint8Array|null} [qcHash] BlockShort qcHash
+     * @property {Uint8Array|null} [dataHash] BlockShort dataHash
+     * @property {Uint8Array|null} [txHash] BlockShort txHash
+     * @property {Uint8Array|null} [stateHash] BlockShort stateHash
+     * @property {number|null} [height] BlockShort height
+     * @property {number|Long|null} [timestamp] BlockShort timestamp
      */
 
     /**
-     * Constructs a new BlockHeader.
-     * @exports BlockHeader
-     * @classdesc Represents a BlockHeader.
+     * Constructs a new BlockShort.
+     * @exports BlockShort
+     * @classdesc Represents a BlockShort.
      * @implements IBlockHeader
      * @constructor
      * @param {IBlockHeader=} [properties] Properties to set
@@ -3237,87 +3237,87 @@ $root.BlockHeader = (function() {
     }
 
     /**
-     * BlockHeader hash.
+     * BlockShort hash.
      * @member {Uint8Array} hash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.hash = $util.newBuffer([]);
 
     /**
-     * BlockHeader parentHash.
+     * BlockShort parentHash.
      * @member {Uint8Array} parentHash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.parentHash = $util.newBuffer([]);
 
     /**
-     * BlockHeader qcHash.
+     * BlockShort qcHash.
      * @member {Uint8Array} qcHash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.qcHash = $util.newBuffer([]);
 
     /**
-     * BlockHeader dataHash.
+     * BlockShort dataHash.
      * @member {Uint8Array} dataHash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.dataHash = $util.newBuffer([]);
 
     /**
-     * BlockHeader txHash.
+     * BlockShort txHash.
      * @member {Uint8Array} txHash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.txHash = $util.newBuffer([]);
 
     /**
-     * BlockHeader stateHash.
+     * BlockShort stateHash.
      * @member {Uint8Array} stateHash
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.stateHash = $util.newBuffer([]);
 
     /**
-     * BlockHeader height.
+     * BlockShort height.
      * @member {number} height
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.height = 0;
 
     /**
-     * BlockHeader timestamp.
+     * BlockShort timestamp.
      * @member {number|Long} timestamp
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      */
     BlockHeader.prototype.timestamp = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
     /**
-     * Creates a new BlockHeader instance using the specified properties.
+     * Creates a new BlockShort instance using the specified properties.
      * @function create
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
      * @param {IBlockHeader=} [properties] Properties to set
-     * @returns {BlockHeader} BlockHeader instance
+     * @returns {BlockHeader} BlockShort instance
      */
     BlockHeader.create = function create(properties) {
         return new BlockHeader(properties);
     };
 
     /**
-     * Encodes the specified BlockHeader message. Does not implicitly {@link BlockHeader.verify|verify} messages.
+     * Encodes the specified BlockShort message. Does not implicitly {@link BlockHeader.verify|verify} messages.
      * @function encode
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
-     * @param {IBlockHeader} message BlockHeader message or plain object to encode
+     * @param {IBlockHeader} message BlockShort message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
@@ -3344,11 +3344,11 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Encodes the specified BlockHeader message, length delimited. Does not implicitly {@link BlockHeader.verify|verify} messages.
+     * Encodes the specified BlockShort message, length delimited. Does not implicitly {@link BlockHeader.verify|verify} messages.
      * @function encodeDelimited
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
-     * @param {IBlockHeader} message BlockHeader message or plain object to encode
+     * @param {IBlockHeader} message BlockShort message or plain object to encode
      * @param {$protobuf.Writer} [writer] Writer to encode to
      * @returns {$protobuf.Writer} Writer
      */
@@ -3357,13 +3357,13 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Decodes a BlockHeader message from the specified reader or buffer.
+     * Decodes a BlockShort message from the specified reader or buffer.
      * @function decode
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
      * @param {number} [length] Message length if known beforehand
-     * @returns {BlockHeader} BlockHeader
+     * @returns {BlockHeader} BlockShort
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
@@ -3407,12 +3407,12 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Decodes a BlockHeader message from the specified reader or buffer, length delimited.
+     * Decodes a BlockShort message from the specified reader or buffer, length delimited.
      * @function decodeDelimited
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-     * @returns {BlockHeader} BlockHeader
+     * @returns {BlockHeader} BlockShort
      * @throws {Error} If the payload is not a reader or valid buffer
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
@@ -3423,9 +3423,9 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Verifies a BlockHeader message.
+     * Verifies a BlockShort message.
      * @function verify
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
      * @param {Object.<string,*>} message Plain object to verify
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -3461,12 +3461,12 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Creates a BlockHeader message from a plain object. Also converts values to their respective internal types.
+     * Creates a BlockShort message from a plain object. Also converts values to their respective internal types.
      * @function fromObject
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
      * @param {Object.<string,*>} object Plain object
-     * @returns {BlockHeader} BlockHeader
+     * @returns {BlockHeader} BlockShort
      */
     BlockHeader.fromObject = function fromObject(object) {
         if (object instanceof $root.BlockHeader)
@@ -3517,11 +3517,11 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Creates a plain object from a BlockHeader message. Also converts values to other types if specified.
+     * Creates a plain object from a BlockShort message. Also converts values to other types if specified.
      * @function toObject
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @static
-     * @param {BlockHeader} message BlockHeader
+     * @param {BlockHeader} message BlockShort
      * @param {$protobuf.IConversionOptions} [options] Conversion options
      * @returns {Object.<string,*>} Plain object
      */
@@ -3602,9 +3602,9 @@ $root.BlockHeader = (function() {
     };
 
     /**
-     * Converts this BlockHeader to JSON.
+     * Converts this BlockShort to JSON.
      * @function toJSON
-     * @memberof BlockHeader
+     * @memberof BlockShort
      * @instance
      * @returns {Object.<string,*>} JSON object
      */

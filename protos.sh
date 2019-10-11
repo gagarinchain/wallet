@@ -1,1 +1,2 @@
 /usr/local/bin/node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o protos.js /Users/dabasov/Projects/gagarin/network/common/protobuff/protos/message.proto
+/usr/local/bin/node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o protose.js /Users/dabasov/Projects/gagarin/network/common/protobuff/protos/event.proto
