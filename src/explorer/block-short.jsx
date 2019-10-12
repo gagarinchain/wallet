@@ -9,9 +9,9 @@ import {Link} from "react-router-dom";
 
 export class BlockShort extends Component {
     render() {
-        let href = "#/block/" + this.props.block.hash;
+        let clazz = this.props.block.isCommitted ? "table-success" : "table-default";
         return (
-                <tr>
+                <tr className={clazz}>
                     <td><Link to={`/block/${this.props.block.hash}`} activeClassName="active">{this.props.block.hash.substr(0, 12)}</Link></td>
                     <td>{this.props.block.height}</td>
                     <td><Link to={`/block/${this.props.block.parent}`} activeClassName="active">{this.props.block.parent.substr(0, 12)}</Link></td>

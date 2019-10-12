@@ -1,4 +1,4 @@
-import {BLOCK_RECEIVED, EPOCH_STARTED, INITIAL_STATE, VIEW_CHANGED, WS_CONNECTED} from "./actions";
+import {BLOCK_RECEIVED, COMMITTED, EPOCH_STARTED, INITIAL_STATE, VIEW_CHANGED, WS_CONNECTED} from "./actions";
 import React from "react";
 import {Map} from "immutable";
 
@@ -10,6 +10,9 @@ export function mainReducer(state = INITIAL_STATE, action) {
             return viewChanged(state, action);
         case EPOCH_STARTED:
             return epochStarted(state, action);
+        case COMMITTED:
+            return committed(state, action);
+
         default:return state
     }
 }
@@ -17,8 +20,14 @@ export function mainReducer(state = INITIAL_STATE, action) {
 function viewChanged(state, action) {
     return state.setIn(["view"], action.value.view);
 }
+
 function epochStarted(state, action) {
     return state.setIn(["epoch"], action.value.epoch);
+}
+
+function committed(state, action) {
+    let hash = Buffer.from(action.value.hash).toString('hex');
+    return state.setIn(["committed", hash], {});
 }
 
 // Block {txs: Array(0), header: BlockHeader, cert: QuorumCertificate, data: BlockData}

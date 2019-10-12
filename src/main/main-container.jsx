@@ -1,4 +1,4 @@
-import {blockReceived, epochStarted, viewChanged} from "./actions";
+import {blockReceived, epochStarted, viewChanged, committed} from "./actions";
 import {connect} from "react-redux";
 import {toJS} from "../ImmutableTransformerHOC";
 import {Explorer} from "../explorer/explorer";
@@ -21,6 +21,9 @@ function mapDispatchToProps(dispatch) {
         },
         viewChanged : (view) => {
             dispatch(viewChanged(view));
+        },
+        committed : (hash) => {
+            dispatch(committed(hash));
         },
     };
 }

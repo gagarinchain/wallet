@@ -161,6 +161,7 @@ $root.Event = (function() {
             case 1:
             case 2:
             case 3:
+            case 4:
                 break;
             }
         if (message.payload != null && message.hasOwnProperty("payload")) {
@@ -199,6 +200,10 @@ $root.Event = (function() {
         case "VIEW_CHANGED":
         case 3:
             message.type = 3;
+            break;
+        case "COMMITTED":
+        case 4:
+            message.type = 4;
             break;
         }
         if (object.payload != null) {
@@ -252,6 +257,7 @@ $root.Event = (function() {
      * @property {number} BLOCK_ADDED=1 BLOCK_ADDED value
      * @property {number} EPOCH_STARTED=2 EPOCH_STARTED value
      * @property {number} VIEW_CHANGED=3 VIEW_CHANGED value
+     * @property {number} COMMITTED=4 COMMITTED value
      */
     Event.EventType = (function() {
         var valuesById = {}, values = Object.create(valuesById);
@@ -259,6 +265,7 @@ $root.Event = (function() {
         values[valuesById[1] = "BLOCK_ADDED"] = 1;
         values[valuesById[2] = "EPOCH_STARTED"] = 2;
         values[valuesById[3] = "VIEW_CHANGED"] = 3;
+        values[valuesById[4] = "COMMITTED"] = 4;
         return values;
     })();
 
@@ -637,6 +644,202 @@ $root.ViewChangedPayload = (function() {
     };
 
     return ViewChangedPayload;
+})();
+
+$root.CommittedPayload = (function() {
+
+    /**
+     * Properties of a CommittedPayload.
+     * @exports ICommittedPayload
+     * @interface ICommittedPayload
+     * @property {Uint8Array|null} [hash] CommittedPayload hash
+     */
+
+    /**
+     * Constructs a new CommittedPayload.
+     * @exports CommittedPayload
+     * @classdesc Represents a CommittedPayload.
+     * @implements ICommittedPayload
+     * @constructor
+     * @param {ICommittedPayload=} [properties] Properties to set
+     */
+    function CommittedPayload(properties) {
+        if (properties)
+            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                if (properties[keys[i]] != null)
+                    this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * CommittedPayload hash.
+     * @member {Uint8Array} hash
+     * @memberof CommittedPayload
+     * @instance
+     */
+    CommittedPayload.prototype.hash = $util.newBuffer([]);
+
+    /**
+     * Creates a new CommittedPayload instance using the specified properties.
+     * @function create
+     * @memberof CommittedPayload
+     * @static
+     * @param {ICommittedPayload=} [properties] Properties to set
+     * @returns {CommittedPayload} CommittedPayload instance
+     */
+    CommittedPayload.create = function create(properties) {
+        return new CommittedPayload(properties);
+    };
+
+    /**
+     * Encodes the specified CommittedPayload message. Does not implicitly {@link CommittedPayload.verify|verify} messages.
+     * @function encode
+     * @memberof CommittedPayload
+     * @static
+     * @param {ICommittedPayload} message CommittedPayload message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CommittedPayload.encode = function encode(message, writer) {
+        if (!writer)
+            writer = $Writer.create();
+        if (message.hash != null && message.hasOwnProperty("hash"))
+            writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.hash);
+        return writer;
+    };
+
+    /**
+     * Encodes the specified CommittedPayload message, length delimited. Does not implicitly {@link CommittedPayload.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof CommittedPayload
+     * @static
+     * @param {ICommittedPayload} message CommittedPayload message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    CommittedPayload.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a CommittedPayload message from the specified reader or buffer.
+     * @function decode
+     * @memberof CommittedPayload
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {CommittedPayload} CommittedPayload
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CommittedPayload.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader))
+            reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.CommittedPayload();
+        while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+            case 1:
+                message.hash = reader.bytes();
+                break;
+            default:
+                reader.skipType(tag & 7);
+                break;
+            }
+        }
+        return message;
+    };
+
+    /**
+     * Decodes a CommittedPayload message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof CommittedPayload
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {CommittedPayload} CommittedPayload
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    CommittedPayload.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader))
+            reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a CommittedPayload message.
+     * @function verify
+     * @memberof CommittedPayload
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    CommittedPayload.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+            return "object expected";
+        if (message.hash != null && message.hasOwnProperty("hash"))
+            if (!(message.hash && typeof message.hash.length === "number" || $util.isString(message.hash)))
+                return "hash: buffer expected";
+        return null;
+    };
+
+    /**
+     * Creates a CommittedPayload message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof CommittedPayload
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {CommittedPayload} CommittedPayload
+     */
+    CommittedPayload.fromObject = function fromObject(object) {
+        if (object instanceof $root.CommittedPayload)
+            return object;
+        var message = new $root.CommittedPayload();
+        if (object.hash != null)
+            if (typeof object.hash === "string")
+                $util.base64.decode(object.hash, message.hash = $util.newBuffer($util.base64.length(object.hash)), 0);
+            else if (object.hash.length)
+                message.hash = object.hash;
+        return message;
+    };
+
+    /**
+     * Creates a plain object from a CommittedPayload message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof CommittedPayload
+     * @static
+     * @param {CommittedPayload} message CommittedPayload
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    CommittedPayload.toObject = function toObject(message, options) {
+        if (!options)
+            options = {};
+        var object = {};
+        if (options.defaults)
+            if (options.bytes === String)
+                object.hash = "";
+            else {
+                object.hash = [];
+                if (options.bytes !== Array)
+                    object.hash = $util.newBuffer(object.hash);
+            }
+        if (message.hash != null && message.hasOwnProperty("hash"))
+            object.hash = options.bytes === String ? $util.base64.encode(message.hash, 0, message.hash.length) : options.bytes === Array ? Array.prototype.slice.call(message.hash) : message.hash;
+        return object;
+    };
+
+    /**
+     * Converts this CommittedPayload to JSON.
+     * @function toJSON
+     * @memberof CommittedPayload
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    CommittedPayload.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    return CommittedPayload;
 })();
 
 $root.google = (function() {

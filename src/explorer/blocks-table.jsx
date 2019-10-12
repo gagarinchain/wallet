@@ -1,5 +1,4 @@
 import {Component} from "react";
-import {ListGroup} from "react-bootstrap";
 import React from "react";
 import {BlockShort} from "./block-short";
 import Table from "react-bootstrap/Table";

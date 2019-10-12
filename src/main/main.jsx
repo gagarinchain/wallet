@@ -3,7 +3,7 @@ import {HashRouter, Route, Switch} from "react-router-dom";
 import {TransactorContainer} from "../transactor/transactor-container";
 import {ExplorerContainer} from "../explorer/explorer-container";
 import {BlockInfo} from "../explorer/block-info";
-import {EpochStartedPayload, Event, ViewChangedPayload} from "../../protose";
+import {EpochStartedPayload, Event, ViewChangedPayload, CommittedPayload} from "../../protose";
 import * as protobuf from "protobufjs";
 import {Block} from "../../protos";
 import Container from "react-bootstrap/Container";
@@ -52,6 +52,12 @@ export class Main extends React.Component {
                         let view = ViewChangedPayload.decode(any.value);
                         console.log(view);
                         this.props.viewChanged(view)
+                    }
+                    if (data.type === Event.EventType.COMMITTED) {
+                        let any = data.payload;
+                        let hash = CommittedPayload.decode(any.value);
+                        console.log(hash);
+                        this.props.committed(hash)
                     }
                 }
             }
