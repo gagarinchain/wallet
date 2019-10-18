@@ -1,7 +1,5 @@
 import {Component} from "react";
-import {Col, FormControl, FormGroup, FormLabel, Row} from "react-bootstrap";
 import React from "react";
-import Card from "react-bootstrap/Card";
 import Table from "react-bootstrap/Table";
 
 // Block {txs: Array(0), header: BlockHeader, cert: QuorumCertificate, data: BlockData}

@@ -14,12 +14,14 @@ const defaultsDeep = require('@nodeutils/defaults-deep');
 const libp2p = require('libp2p');
 const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
+const Pushable = require('pull-pushable');
 
 
 // Find this list at: https://github.com/ipfs/js-ipfs/blob/master/src/core/runtime/config-browser.json
 const bootstrapList = [
     '/ip4/127.0.0.1/tcp/9181/ws/p2p/16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm',
 ];
+const p = Pushable();
 
 class Node extends libp2p {
     constructor (_options) {
@@ -123,6 +125,14 @@ function startNode(node) {
     })
 }
 
+Node.prototype.send = function(data) {
+    console.log("pushing");
+    // data.forEach( (uint)
+    //
+    // )
+    p.push(data);
+};
+
 Node.prototype.receive = function(transform, consume) {
         let peerId = {
             id: "16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm",
@@ -144,6 +154,10 @@ Node.prototype.receive = function(transform, consume) {
                 if(err) {
                     console.log(err)
                 } else {
+                    pull(
+                        p,
+                        con
+                    );
                     pull(
                         con,
                         pull.map(transform),

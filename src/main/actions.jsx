@@ -5,12 +5,16 @@ export const BLOCK_RECEIVED = "BLOCK_RECEIVED";
 export const VIEW_CHANGED = "VIEW_CHANGED";
 export const EPOCH_STARTED = "EPOCH_STARTED";
 export const COMMITTED = "COMMITTED";
+export const BLOCK_RESPONSE_RECEIVED = "BLOCK_RESPONSE_RECEIVED";
+export const ACCOUNT_RESPONSE_RECEIVED = "ACCOUNT_RESPONSE_RECEIVED";
 
 export const INITIAL_STATE = new Map({
     view: 0,
     epoch: 0,
     committed: new Map(),
     blocks: new Map(),
+    accounts: new Map(),
+    responses: new Map(),
     last20: new List(),
 });
 
@@ -42,5 +46,17 @@ export function committed(hash) {
     return {
         type: COMMITTED,
         value: hash
+    }
+}
+export function blockResponseReceived(block) {
+    return {
+        type: BLOCK_RESPONSE_RECEIVED,
+        value: block
+    }
+}
+export function accountResponseReceived(account) {
+    return {
+        type: ACCOUNT_RESPONSE_RECEIVED,
+        value: account
     }
 }

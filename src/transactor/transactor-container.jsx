@@ -5,7 +5,7 @@ import {connect} from "react-redux";
 import {Transactor} from "./transactor";
 import * as bls from "noble-bls12-381";
 
-import {TX_FIELD_ENTERED} from "./ations";
+import {TX_FIELD_ENTERED} from "./actions";
 import {formFieldEnteredCommon} from "../action-common";
 
 function mapStateToProps(state) {
@@ -47,13 +47,16 @@ function handleSubmit(n) {
         const address = Buffer.from(to.substring(2), 'hex');
         const key = Buffer.from(priv, 'hex');
 
-        //we omit type since js adds it to message when type==0, but golang don't lol
+        let nonceInt = parseInt(nonce, 10);
+        let nonceNulled = (nonceInt == 0) ? null: nonceInt;
+        //we omit type since js adds it to message when type==0, but golang don't
         let tx = Transaction.create(
             {
                 to: address,
-                nonce: parseInt(nonce, 10),
+                nonce: nonceNulled,
                 value: parseInt(value, 10),
                 fee: parseInt(fee, 10),
+                signature: null,
                 data: Buffer.from(data, 'utf-8')
             });
         let txbytes = Transaction.encode(tx).finish();
@@ -62,6 +65,8 @@ function handleSubmit(n) {
             return await bls.sign(Buffer.from(keccak256.arrayBuffer(txbytes)), key, 0)
         })().then((sign) => {
             console.log("sign: ", sign);
+            console.log("hash: ", Buffer.from(keccak256.arrayBuffer(txbytes)));
+            console.log("tx bytes: ", txbytes);
 
             let publicKey = bls.getPublicKey(key);
             tx.signature = Signature.create({
@@ -70,12 +75,15 @@ function handleSubmit(n) {
 
             });
 
+            console.log(publicKey);
             let any = google.protobuf.Any.create(
                 {
                     type_url: "type.googleapis.com/Transaction",
                     value: Transaction.encode(tx).finish()
                 }
             );
+            console.log("tx: ", Transaction.encode(tx).finish());
+            console.log("any: ", any);
             let m = Message.create(
                 {
                     type: Message.MessageType.TRANSACTION,
@@ -84,7 +92,7 @@ function handleSubmit(n) {
             );
 
             let buf = Message.encode(m).finish();
-            console.log("sending: " + buf.toString());
+            console.log("sending: ", buf);
 
             //todo add sending to 4 peers instead of multicast
             n.pubsub.publish('/tx', [new Buffer(buf)], (err) => {

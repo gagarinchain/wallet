@@ -1,7 +1,13 @@
-import {blockReceived, epochStarted, viewChanged, committed} from "./actions";
+import {
+    blockReceived,
+    epochStarted,
+    viewChanged,
+    committed,
+    blockResponseReceived,
+    accountResponseReceived
+} from "./actions";
 import {connect} from "react-redux";
 import {toJS} from "../ImmutableTransformerHOC";
-import {Explorer} from "../explorer/explorer";
 import {Main} from "./main";
 
 function mapStateToProps(state) {
@@ -24,6 +30,12 @@ function mapDispatchToProps(dispatch) {
         },
         committed : (hash) => {
             dispatch(committed(hash));
+        },
+        blockResponseReceived : (block) => {
+            dispatch(blockResponseReceived(block));
+        },
+        accountResponseReceived : (account) => {
+            dispatch(accountResponseReceived(account));
         },
     };
 }

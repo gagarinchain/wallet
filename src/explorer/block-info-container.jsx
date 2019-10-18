@@ -6,9 +6,9 @@ import {BlockInfo} from "./block-info";
 import {createSelector} from "reselect"
 
 function mapStateToProps(state, ownProps) {
-    console.log(ownProps.match.params.id);
+    let id = ownProps.id != null ? ownProps.id : ownProps.match.params.id;
     return {
-        block: transformBlockSelector(state, ownProps.match.params.id),
+        block: transformBlockSelector(state, id),
     };
 }
 

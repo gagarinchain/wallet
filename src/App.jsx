@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import ReactDom from "react-dom";
-import { HashRouter, Route, Switch} from "react-router-dom";
+import {ConnectedRouter} from "connected-react-router/immutable";
 import { Provider } from "react-redux";
 import './App.css';
-import {makeStore} from "./store";
+import {makeStore, history} from "./store";
 import {createNode, startNode} from "./Node"
 import "@babel/polyfill"
 import {MainContainer} from "./main/main-container";
@@ -27,17 +27,23 @@ class App extends React.Component {
 
     render() {
         if (this.state.isReady === true) {
+            console.log(store.getState());
             return (
                 <Provider store={store}>
-                    <HashRouter>
+                    <ConnectedRouter history={history}>
                         <MainContainer node={this.state.node} />
-                    </HashRouter>
+                    </ConnectedRouter>
                 </Provider>
             );
         } else {
             return null
         }
 
+    }
+
+    static getDerivedStateFromError(error) {
+        // Update state so the next render will show the fallback UI.
+        return null;
     }
 
 }

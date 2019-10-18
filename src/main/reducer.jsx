@@ -1,4 +1,4 @@
-import {BLOCK_RECEIVED, COMMITTED, EPOCH_STARTED, INITIAL_STATE, VIEW_CHANGED, WS_CONNECTED} from "./actions";
+import {BLOCK_RECEIVED, COMMITTED, EPOCH_STARTED, INITIAL_STATE, VIEW_CHANGED, ACCOUNT_RESPONSE_RECEIVED, BLOCK_RESPONSE_RECEIVED} from "./actions";
 import React from "react";
 import {Map} from "immutable";
 
@@ -12,6 +12,10 @@ export function mainReducer(state = INITIAL_STATE, action) {
             return epochStarted(state, action);
         case COMMITTED:
             return committed(state, action);
+        case ACCOUNT_RESPONSE_RECEIVED:
+            return accountResponseReceived(state, action);
+        case BLOCK_RESPONSE_RECEIVED:
+            return blockResponseReceived(state, action);
 
         default:return state
     }
@@ -30,6 +34,38 @@ function committed(state, action) {
     return state.setIn(["committed", hash], {});
 }
 
+const accountResponseReceived = (state, action) => {
+    console.log("actions");
+    let id = Buffer.from(action.value.id).toString('hex');
+    if (action.value.account == null){ // not found
+        return responseReceived(state, "A", id,  null);
+    }
+    let address = Buffer.from(action.value.account.address).toString('hex');
+    state = responseReceived(state, "A", id, address);
+    return accountReceived(state, action.value.account);
+
+};
+
+const responseReceived = (state, type, reqId, entityId) => {
+    return state.setIn(["responses", reqId], {"type": type, "id": entityId})
+};
+
+const accountReceived = (state, account) => {
+    let address = Buffer.from(account.address).toString('hex');
+    return state.setIn(["accounts", address], account)
+};
+
+const blockResponseReceived = (state, action) => {
+    let id = Buffer.from(action.value.id).toString('hex');
+    if (action.value.block == null) { //not found
+        return responseReceived(state, "B", id, null);
+    }
+    let hash = Buffer.from(action.value.block.header.hash).toString('hex');
+    state = responseReceived(state, "B", id, hash);
+    return blockReceived(state, {
+        value : action.value.block
+    });
+};
 // Block {txs: Array(0), header: BlockHeader, cert: QuorumCertificate, data: BlockData}
 // cert: QuorumCertificate {header: BlockHeader, signatureAggregate: SignatureAggregate}
 // data: BlockData {data: Uint8Array(19)}

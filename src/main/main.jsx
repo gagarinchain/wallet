@@ -1,9 +1,8 @@
 import React from "react";
-import {HashRouter, Route, Switch} from "react-router-dom";
+import {Route, Switch} from "react-router-dom";
 import {TransactorContainer} from "../transactor/transactor-container";
 import {ExplorerContainer} from "../explorer/explorer-container";
-import {BlockInfo} from "../explorer/block-info";
-import {EpochStartedPayload, Event, ViewChangedPayload, CommittedPayload} from "../../protose";
+import {EpochStartedPayload, Event, ViewChangedPayload, CommittedPayload, AccountResponsePayload} from "../../protose";
 import * as protobuf from "protobufjs";
 import {Block} from "../../protos";
 import Container from "react-bootstrap/Container";
@@ -11,12 +10,11 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
-import Form from "react-bootstrap/Form";
-import FormControl from "react-bootstrap/FormControl";
-import Button from "react-bootstrap/Button";
 import Image from "react-bootstrap/Image";
 import Icon from "./icon.jpg"
 import {BlockInfoContainer} from "../explorer/block-info-container";
+import {SearchContainer} from "../search/search-container";
+import {ResultsContainer} from "../search/results-container";
 
 export class Main extends React.Component {
     componentDidMount() {
@@ -59,6 +57,36 @@ export class Main extends React.Component {
                         console.log(hash);
                         this.props.committed(hash)
                     }
+                    if (data.type === Event.EventType.BLOCK) {
+                        let any = data.payload;
+                        if (any == null) {
+                            this.props.blockResponseReceived({
+                                id: data.id
+                            });
+                        } else {
+                            let block = Block.decode(any.value);
+                            console.log(block);
+                            this.props.blockResponseReceived({
+                                block: block,
+                                id: data.id
+                            })
+                        }
+                    }
+                    if (data.type === Event.EventType.ACCOUNT) {
+                        let any = data.payload;
+                        if (any == null) {
+                            this.props.accountResponseReceived({
+                                id: data.id,
+                            })
+                        } else {
+                            let account = AccountResponsePayload.decode(any.value);
+                            console.log(account);
+                            this.props.accountResponseReceived({
+                                id: data.id,
+                                account:account
+                            })
+                        }
+                    }
                 }
             }
         )
@@ -75,10 +103,7 @@ export class Main extends React.Component {
                         <Nav>
                             <Nav.Link href="#blocks">Blocks</Nav.Link>
                         </Nav>
-                        <Form inline>
-                            <FormControl type="text" placeholder="Search" className="mr-sm-4" />
-                            <Button variant="outline-success">Search</Button>
-                        </Form>
+                        <SearchContainer node={this.props.node} />
                     </Navbar.Collapse>
                     <Navbar.Text>
                         Epoch: {this.props.epoch}
@@ -94,6 +119,7 @@ export class Main extends React.Component {
                                 <Route exact path="/" render={(props) => <TransactorContainer {...props} node={this.props.node} />} />
                                 <Route exact path="/blocks" render={(props) => <ExplorerContainer {...props} />} />
                                 <Route exact path="/block/:id" render={(props) => <BlockInfoContainer {...props} />} />
+                                <Route exact path="/search/:id" render={(props) => <ResultsContainer {...props} />} />
                             </Switch>
                         </Col>
                     </Row>
