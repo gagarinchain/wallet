@@ -1,5 +1,7 @@
 'use strict'
 
+const GossipSub = require('libp2p-gossipsub');
+
 const WebRTCStar = require('libp2p-webrtc-star');
 const WebSockets = require('libp2p-websockets');
 const WebSocketStar = require('libp2p-websocket-star');
@@ -11,11 +13,15 @@ const DHT = require('libp2p-kad-dht');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const libp2p = require('libp2p');
 const PeerInfo = require('peer-info');
+const pull = require('pull-stream');
+const Pushable = require('pull-pushable');
+
 
 // Find this list at: https://github.com/ipfs/js-ipfs/blob/master/src/core/runtime/config-browser.json
 const bootstrapList = [
     '/ip4/127.0.0.1/tcp/9181/ws/p2p/16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm',
 ];
+const p = Pushable();
 
 class Node extends libp2p {
     constructor (_options) {
@@ -58,25 +64,110 @@ class Node extends libp2p {
         super(defaultsDeep(_options, defaults))
     }
 }
-function createNode (callback) {
-    PeerInfo.create((err, peerInfo) => {
-        if (err) {
-            return callback(err)
-        }
 
-        const peerIdStr = peerInfo.id.toB58String();
-        const ma = `/ip4/127.0.0.1/tcp/9081/p2p/${peerIdStr}`;
+function createNode () {
+    return new Promise((resolve, reject) => {
+        PeerInfo.create((err, peerInfo) => {
+            if (err) {
+                reject(err);
+                return
+            }
 
-        peerInfo.multiaddrs.add(ma);
+            console.log(peerInfo);
 
-        const node = new Node({
-            peerInfo
-        });
+            const peerIdStr = peerInfo.id.toB58String();
+            const ma = `/ip4/127.0.0.1/tcp/9081/p2p/${peerIdStr}`;
 
-        node.idStr = peerIdStr;
+            peerInfo.multiaddrs.add(ma);
 
-        callback(null, node)
+            const node = new Node({
+                peerInfo
+            });
+
+            node.idStr = peerIdStr;
+
+            resolve(node)
+        })
     })
 }
 
-module.exports = createNode;
+function startNode(node) {
+    return new Promise((resolve, reject) => {
+
+        node.pubsub = new GossipSub(node, {fallbackToFloodsub: false});
+
+        node.on('peer:discovery', (peerInfo) => {
+            console.log('Discovered a peer:', peerInfo.id.toB58String());
+        });
+
+        node.on('peer:connect', (peerInfo) => {
+            const idStr = peerInfo.id.toB58String();
+            console.log('Got connection to: ' + idStr);
+        });
+
+        node.on('peer:disconnect', (peerInfo) => {
+            const idStr = peerInfo.id.toB58String();
+        });
+
+        node.start((err) => {
+            if (err) {
+                reject(err);
+                return console.log(err)
+            }
+            node.pubsub.start((err) => {
+                if (err) {
+                    reject(err);
+                    console.log('Upsy', err)
+                }
+                resolve(node)
+            });
+        });
+    })
+}
+
+Node.prototype.send = function(data) {
+    console.log("pushing");
+    // data.forEach( (uint)
+    //
+    // )
+    p.push(data);
+};
+
+Node.prototype.receive = function(transform, consume) {
+        let peerId = {
+            id: "16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm",
+        };
+        PeerInfo.create(peerId, (err, peerInfo) => {
+            if (err) {
+                console.log(err);
+                return
+            }
+
+            console.log(peerInfo);
+
+            const peerIdStr = peerInfo.id.toB58String();
+                const ma = `/ip4/127.0.0.1/tcp/9181/p2p/${peerIdStr}`;
+
+            peerInfo.multiaddrs.add(ma);
+
+            this.dialProtocol(peerInfo, "/gagarin/1.0.0", (err, con) => {
+                if(err) {
+                    console.log(err)
+                } else {
+                    pull(
+                        p,
+                        con
+                    );
+                    pull(
+                        con,
+                        pull.map(transform),
+                        pull.drain(consume)
+                    )
+                }
+
+            });
+    })
+}
+
+module.exports.createNode = createNode;
+module.exports.startNode = startNode;
