@@ -4,7 +4,7 @@ import {ConnectedRouter} from "connected-react-router/immutable";
 import { Provider } from "react-redux";
 import './App.css';
 import {makeStore, history} from "./store";
-import {createNode, startNode} from "./Node"
+import {createNode, startNode, findPeers} from "./Node"
 import "@babel/polyfill"
 import {MainContainer} from "./main/main-container";
 
@@ -57,7 +57,14 @@ async function initNode() {
     let node;
     try {
         node = await createNode();
-        node = await startNode(node)
+        node = await startNode(node);
+        setInterval(() => {
+            findPeers(node, '/tx').then(
+                (result) => {
+                    result.forEach(console.log)
+                }
+            )
+        }, 60000);
     }
     catch(err){
         console.log('Could not create the Node, check if your browser has WebRTC Support', err);

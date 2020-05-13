@@ -49,10 +49,12 @@ function handleSubmit(n) {
 
         let nonceInt = parseInt(nonce, 10);
         let nonceNulled = (nonceInt == 0) ? null: nonceInt;
+        let from = Buffer.from(bls.getPublicKey(key)).slice(28);
         //we omit type since js adds it to message when type==0, but golang don't
         let tx = Transaction.create(
             {
                 to: address,
+                from: from,
                 nonce: nonceNulled,
                 value: parseInt(value, 10),
                 fee: parseInt(fee, 10),
@@ -75,7 +77,8 @@ function handleSubmit(n) {
 
             });
 
-            console.log(publicKey);
+            tx.from = Uint8Array.from([])
+            console.log(tx);
             let any = google.protobuf.Any.create(
                 {
                     type_url: "type.googleapis.com/Transaction",
@@ -91,15 +94,12 @@ function handleSubmit(n) {
                 }
             );
 
-            let buf = Message.encode(m).finish();
+            let buf = Message.encodeDelimited(m).finish();
             console.log("sending: ", buf);
+            console.log("sending: ", Buffer.from(buf).toString('hex'));
 
             //todo add sending to 4 peers instead of multicast
-            n.pubsub.publish('/tx', [new Buffer(buf)], (err) => {
-                if (err) {
-                    return console.log(err)
-                }
-            });
+            n.sendTx(new Buffer(buf))
         });
     }
 }

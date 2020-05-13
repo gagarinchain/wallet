@@ -4297,6 +4297,7 @@ $root.Transaction = (function() {
      * @property {number|Long|null} [fee] Transaction fee
      * @property {ISignature|null} [signature] Transaction signature
      * @property {Uint8Array|null} [data] Transaction data
+     * @property {Uint8Array|null} [from] Transaction from
      */
 
     /**
@@ -4371,6 +4372,14 @@ $root.Transaction = (function() {
     Transaction.prototype.data = $util.newBuffer([]);
 
     /**
+     * Transaction from.
+     * @member {Uint8Array} from
+     * @memberof Transaction
+     * @instance
+     */
+    Transaction.prototype.from = $util.newBuffer([]);
+
+    /**
      * Creates a new Transaction instance using the specified properties.
      * @function create
      * @memberof Transaction
@@ -4408,6 +4417,8 @@ $root.Transaction = (function() {
             $root.Signature.encode(message.signature, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
         if (message.data != null && message.hasOwnProperty("data"))
             writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.data);
+        if (message.from != null && message.hasOwnProperty("from"))
+            writer.uint32(/* id 8, wireType 2 =*/66).bytes(message.from);
         return writer;
     };
 
@@ -4462,6 +4473,9 @@ $root.Transaction = (function() {
                 break;
             case 7:
                 message.data = reader.bytes();
+                break;
+            case 8:
+                message.from = reader.bytes();
                 break;
             default:
                 reader.skipType(tag & 7);
@@ -4530,6 +4544,9 @@ $root.Transaction = (function() {
         if (message.data != null && message.hasOwnProperty("data"))
             if (!(message.data && typeof message.data.length === "number" || $util.isString(message.data)))
                 return "data: buffer expected";
+        if (message.from != null && message.hasOwnProperty("from"))
+            if (!(message.from && typeof message.from.length === "number" || $util.isString(message.from)))
+                return "from: buffer expected";
         return null;
     };
 
@@ -4613,6 +4630,11 @@ $root.Transaction = (function() {
                 $util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
             else if (object.data.length)
                 message.data = object.data;
+        if (object.from != null)
+            if (typeof object.from === "string")
+                $util.base64.decode(object.from, message.from = $util.newBuffer($util.base64.length(object.from)), 0);
+            else if (object.from.length)
+                message.from = object.from;
         return message;
     };
 
@@ -4661,6 +4683,13 @@ $root.Transaction = (function() {
                 if (options.bytes !== Array)
                     object.data = $util.newBuffer(object.data);
             }
+            if (options.bytes === String)
+                object.from = "";
+            else {
+                object.from = [];
+                if (options.bytes !== Array)
+                    object.from = $util.newBuffer(object.from);
+            }
         }
         if (message.type != null && message.hasOwnProperty("type"))
             object.type = options.enums === String ? $root.Transaction.Type[message.type] : message.type;
@@ -4685,6 +4714,8 @@ $root.Transaction = (function() {
             object.signature = $root.Signature.toObject(message.signature, options);
         if (message.data != null && message.hasOwnProperty("data"))
             object.data = options.bytes === String ? $util.base64.encode(message.data, 0, message.data.length) : options.bytes === Array ? Array.prototype.slice.call(message.data) : message.data;
+        if (message.from != null && message.hasOwnProperty("from"))
+            object.from = options.bytes === String ? $util.base64.encode(message.from, 0, message.from.length) : options.bytes === Array ? Array.prototype.slice.call(message.from) : message.from;
         return object;
     };
 

@@ -2,9 +2,9 @@
 
 const GossipSub = require('libp2p-gossipsub');
 
-const WebRTCStar = require('libp2p-webrtc-star');
+const CID = require('cids');
+const multihashing = require('multihashing-async');
 const WebSockets = require('libp2p-websockets');
-const WebSocketStar = require('libp2p-websocket-star');
 const Mplex = require('libp2p-mplex');
 const SPDY = require('libp2p-spdy');
 const SECIO = require('libp2p-secio');
@@ -22,6 +22,7 @@ const bootstrapList = [
     '/ip4/127.0.0.1/tcp/9181/ws/p2p/16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm',
 ];
 const p = Pushable();
+const txs = new Map();
 
 class Node extends libp2p {
     constructor (_options) {
@@ -75,8 +76,7 @@ function createNode () {
 
             console.log(peerInfo);
 
-            const peerIdStr = peerInfo.id.toB58String();
-            const ma = `/ip4/127.0.0.1/tcp/9081/p2p/${peerIdStr}`;
+            const ma = `/ip4/0.0.0.0/tcp/0`;
 
             peerInfo.multiaddrs.add(ma);
 
@@ -84,7 +84,7 @@ function createNode () {
                 peerInfo
             });
 
-            node.idStr = peerIdStr;
+            // node.idStr = peerIdStr;
 
             resolve(node)
         })
@@ -94,10 +94,29 @@ function createNode () {
 function startNode(node) {
     return new Promise((resolve, reject) => {
 
-        node.pubsub = new GossipSub(node, {fallbackToFloodsub: false});
+        // node.pubsub = new GossipSub(node, {fallbackToFloodsub: false});
 
         node.on('peer:discovery', (peerInfo) => {
             console.log('Discovered a peer:', peerInfo.id.toB58String());
+
+            if (txs.size < 3) {
+                let push = Pushable();
+                txs.set(peerInfo.id.toB58String(), push);
+
+                node.dialProtocol(peerInfo, "/gagarin/tx/1.0.0", (err, con) => {
+                    if(err) {
+                        console.log(err)
+                    } else {
+                        pull(
+                            push,
+                            con
+                        );
+                    }
+
+                });
+
+            }
+
         });
 
         node.on('peer:connect', (peerInfo) => {
@@ -107,6 +126,7 @@ function startNode(node) {
 
         node.on('peer:disconnect', (peerInfo) => {
             const idStr = peerInfo.id.toB58String();
+            txs.delete(idStr)
         });
 
         node.start((err) => {
@@ -114,13 +134,14 @@ function startNode(node) {
                 reject(err);
                 return console.log(err)
             }
-            node.pubsub.start((err) => {
-                if (err) {
-                    reject(err);
-                    console.log('Upsy', err)
-                }
-                resolve(node)
-            });
+            resolve(node)
+            // node.pubsub.start((err) => {
+            //     if (err) {
+            //         reject(err);
+            //         console.log('Upsy', err)
+            //     }
+            //     resolve(node)
+            // });
         });
     })
 }
@@ -133,10 +154,25 @@ Node.prototype.send = function(data) {
     p.push(data);
 };
 
+Node.prototype.sendTx = function(data) {
+    console.log("pushing tx to [" + txs.size + "] peers");
+    txs.forEach((v, k) => {
+        console.log(v, k);
+        v.push(data)
+    });
+
+};
+
 Node.prototype.receive = function(transform, consume) {
         let peerId = {
             id: "16Uiu2HAmRfSdSFGboNKPYwcWEPXWtnoanBLMVeY6Ak6A31uC5BVm",
         };
+
+        findPeers(this, "/tx").then((val) => {
+            val.forEach(element => console.log("peers found: " + element))
+        });
+
+
         PeerInfo.create(peerId, (err, peerInfo) => {
             if (err) {
                 console.log(err);
@@ -145,12 +181,7 @@ Node.prototype.receive = function(transform, consume) {
 
             console.log(peerInfo);
 
-            const peerIdStr = peerInfo.id.toB58String();
-                const ma = `/ip4/127.0.0.1/tcp/9181/p2p/${peerIdStr}`;
-
-            peerInfo.multiaddrs.add(ma);
-
-            this.dialProtocol(peerInfo, "/gagarin/1.0.0", (err, con) => {
+            this.dialProtocol(peerInfo, "/gagarin/ext/1.0.0", (err, con) => {
                 if(err) {
                     console.log(err)
                 } else {
@@ -169,5 +200,30 @@ Node.prototype.receive = function(transform, consume) {
     })
 }
 
+function findPeers(node, name) {
+    return new Promise((resolve, reject) => {
+        multihashing(Buffer.from(name), 'sha2-256', (Error, Buffer) => {
+            if (Error) {
+                reject(Error);
+                return
+            }
+            const cid = new CID(1, 'raw', Buffer);
+            console.log(cid.toString());
+
+            node.contentRouting.findProviders(cid, {maxTimeout:1000, maxNumProviders:1}, (error, result) => {
+                if (error) {
+                    reject(error);
+                    return console.log(error)
+                }
+                console.log(result);
+                resolve(result)
+            })
+
+
+        });
+    });
+}
+
 module.exports.createNode = createNode;
 module.exports.startNode = startNode;
+module.exports.findPeers = findPeers;
