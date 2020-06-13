@@ -1,4 +1,4 @@
-import {google, Message, Signature, Transaction} from "../../protos";
+import {google, gagarin} from "../../protos";
 import {keccak256} from "js-sha3";
 import React from "react";
 import {connect} from "react-redux";
@@ -51,7 +51,7 @@ function handleSubmit(n) {
         let nonceNulled = (nonceInt == 0) ? null: nonceInt;
         let from = Buffer.from(bls.getPublicKey(key)).slice(28);
         //we omit type since js adds it to message when type==0, but golang don't
-        let tx = Transaction.create(
+        let tx = gagarin.network.core.Transaction.create(
             {
                 to: address,
                 from: from,
@@ -61,7 +61,7 @@ function handleSubmit(n) {
                 signature: null,
                 data: Buffer.from(data, 'utf-8')
             });
-        let txbytes = Transaction.encode(tx).finish();
+        let txbytes = gagarin.network.core.Transaction.encode(tx).finish();
 
         (async () => {
             return await bls.sign(Buffer.from(keccak256.arrayBuffer(txbytes)), key, 0)
@@ -71,7 +71,7 @@ function handleSubmit(n) {
             console.log("tx bytes: ", txbytes);
 
             let publicKey = bls.getPublicKey(key);
-            tx.signature = Signature.create({
+            tx.signature = gagarin.network.core.Signature.create({
                 from: publicKey,
                 signature: sign
 
@@ -81,20 +81,20 @@ function handleSubmit(n) {
             console.log(tx);
             let any = google.protobuf.Any.create(
                 {
-                    type_url: "type.googleapis.com/Transaction",
-                    value: Transaction.encode(tx).finish()
+                    type_url: "type.googleapis.com/gagarin.network.core.Transaction",
+                    value: gagarin.network.core.Transaction.encode(tx).finish()
                 }
             );
-            console.log("tx: ", Transaction.encode(tx).finish());
+            console.log("tx: ", gagarin.network.core.Transaction.encode(tx).finish());
             console.log("any: ", any);
-            let m = Message.create(
+            let m = gagarin.network.core.Message.create(
                 {
-                    type: Message.MessageType.TRANSACTION,
+                    type: gagarin.network.core.Message.MessageType.TRANSACTION,
                     payload: any
                 }
             );
 
-            let buf = Message.encodeDelimited(m).finish();
+            let buf = gagarin.network.core.Message.encodeDelimited(m).finish();
             console.log("sending: ", buf);
             console.log("sending: ", Buffer.from(buf).toString('hex'));
 

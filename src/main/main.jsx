@@ -2,9 +2,8 @@ import React from "react";
 import {Route, Switch} from "react-router-dom";
 import {TransactorContainer} from "../transactor/transactor-container";
 import {ExplorerContainer} from "../explorer/explorer-container";
-import {EpochStartedPayload, Event, ViewChangedPayload, CommittedPayload, AccountResponsePayload} from "../../protose";
 import * as protobuf from "protobufjs";
-import {Block} from "../../protos";
+import {gagarin} from "../../protos";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -22,7 +21,7 @@ export class Main extends React.Component {
             (data) => {
                 console.log(data);
                 try {
-                    return Event.decode(data);
+                    return gagarin.network.event.Event.decode(data);
                 } catch (e) {
                     if (e instanceof protobuf.util.ProtocolError) {
                         // e.instance holds the so far decoded message with missing required fields
@@ -33,38 +32,38 @@ export class Main extends React.Component {
             },
             (data) => {
                 if (data) {
-                    if (data.type === Event.EventType.BLOCK_ADDED) {
+                    if (data.type === gagarin.network.event.Event.EventType.BLOCK_ADDED) {
                         let any = data.payload;
-                        let block = Block.decode(any.value);
+                        let block = gagarin.network.core.Block.decode(any.value);
                         console.log(block);
                         this.props.blockReceived(block)
                     }
-                    if (data.type === Event.EventType.EPOCH_STARTED) {
+                    if (data.type === gagarin.network.event.Event.EventType.EPOCH_STARTED) {
                         let any = data.payload;
-                        let epoch = EpochStartedPayload.decode(any.value);
+                        let epoch = gagarin.network.event.EpochStartedPayload.decode(any.value);
                         console.log(epoch);
                         this.props.epochStarted(epoch)
                     }
-                    if (data.type === Event.EventType.VIEW_CHANGED) {
+                    if (data.type === gagarin.network.event.Event.EventType.VIEW_CHANGED) {
                         let any = data.payload;
-                        let view = ViewChangedPayload.decode(any.value);
+                        let view = gagarin.network.event.ViewChangedPayload.decode(any.value);
                         console.log(view);
                         this.props.viewChanged(view)
                     }
-                    if (data.type === Event.EventType.COMMITTED) {
+                    if (data.type === gagarin.network.event.Event.EventType.COMMITTED) {
                         let any = data.payload;
-                        let hash = CommittedPayload.decode(any.value);
+                        let hash = gagarin.network.event.CommittedPayload.decode(any.value);
                         console.log(hash);
                         this.props.committed(hash)
                     }
-                    if (data.type === Event.EventType.BLOCK) {
+                    if (data.type === gagarin.network.event.Event.EventType.BLOCK) {
                         let any = data.payload;
                         if (any == null) {
                             this.props.blockResponseReceived({
                                 id: data.id
                             });
                         } else {
-                            let block = Block.decode(any.value);
+                            let block = gagarin.network.core.Block.decode(any.value);
                             console.log(block);
                             this.props.blockResponseReceived({
                                 block: block,
@@ -72,18 +71,18 @@ export class Main extends React.Component {
                             })
                         }
                     }
-                    if (data.type === Event.EventType.ACCOUNT) {
+                    if (data.type === gagarin.network.event.Event.EventType.ACCOUNT) {
                         let any = data.payload;
                         if (any == null) {
                             this.props.accountResponseReceived({
                                 id: data.id,
                             })
                         } else {
-                            let account = AccountResponsePayload.decode(any.value);
+                            let account = gagarin.network.event.AccountResponsePayload.decode(any.value);
                             console.log(account);
                             this.props.accountResponseReceived({
                                 id: data.id,
-                                account:account
+                                account:account.account
                             })
                         }
                     }

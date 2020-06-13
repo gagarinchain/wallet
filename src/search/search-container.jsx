@@ -2,8 +2,7 @@ import {connect} from "react-redux";
 import {Search} from "./search";
 import {formFieldEnteredCommon} from "../action-common";
 import {SEARCH_FIELD_ENTERED} from "./actions";
-import {google, BlockRequestPayload} from "../../protos";
-import {AccountRequestPayload, Request} from "../../protose";
+import {google, gagarin} from "../../protos";
 import {keccak256} from "js-sha3";
 import { push } from 'connected-react-router/immutable'
 
@@ -12,19 +11,19 @@ function mapStateToProps(state) {
 }
 
 function createAccountRequest(address, id) {
-    let req = AccountRequestPayload.create({
+    let req = gagarin.network.event.AccountRequestPayload.create({
         address: Buffer.from(address.substring(2), 'hex'),
         block: null
     });
 
     let any = google.protobuf.Any.create(
         {
-            type_url: "type.googleapis.com/AccountRequestPayload",
-            value: AccountRequestPayload.encode(req).finish()
+            type_url: "type.googleapis.com/gagarin.network.event.AccountRequestPayload",
+            value: gagarin.network.event.AccountRequestPayload.encode(req).finish()
         }
     );
 
-    let m = Request.create(
+    let m = gagarin.network.event.Request.create(
         {
             type: null,
             id: id,
@@ -32,32 +31,32 @@ function createAccountRequest(address, id) {
         }
     );
 
-    let buf = Request.encodeDelimited(m).finish();
+    let buf = gagarin.network.event.Request.encodeDelimited(m).finish();
     console.log("sending: ", buf);
     return buf;
 }
 
 function createBlockRequest(hash, id) {
-    let req = BlockRequestPayload.create({
+    let req = gagarin.network.core.BlockRequestPayload.create({
         hash: Buffer.from(hash, 'hex'),
     });
 
     let any = google.protobuf.Any.create(
         {
-            type_url: "type.googleapis.com/BlockRequestPayload",
-            value: BlockRequestPayload.encode(req).finish()
+            type_url: "type.googleapis.com/gagarin.network.core.BlockRequestPayload",
+            value: gagarin.network.core.BlockRequestPayload.encode(req).finish()
         }
     );
 
-    let m = Request.create(
+    let m = gagarin.network.event.Request.create(
         {
-            type: Request.RequestType.BLOCK,
+            type: gagarin.network.event.Request.RequestType.BLOCK,
             id: id,
             payload: any
         }
     );
 
-    let buf = Request.encodeDelimited(m).finish();
+    let buf = gagarin.network.event.Request.encodeDelimited(m).finish();
     console.log("sending: ", buf);
     return buf;
 }
