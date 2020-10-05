@@ -1,9 +1,9 @@
 import {google, gagarin} from "../../protos";
-import {keccak256} from "js-sha3";
 import React from "react";
 import {connect} from "react-redux";
 import {Transactor} from "./transactor";
 import * as bls from "noble-bls12-381";
+import hash from "./hasher";
 
 import {TX_FIELD_ENTERED} from "./actions";
 import {formFieldEnteredCommon} from "../action-common";
@@ -61,14 +61,13 @@ function handleSubmit(n) {
                 signature: null,
                 data: Buffer.from(data, 'utf-8')
             });
-        let txbytes = gagarin.network.core.Transaction.encode(tx).finish();
+        let h = hash(tx);
 
         (async () => {
-            return await bls.sign(Buffer.from(keccak256.arrayBuffer(txbytes)), key, 0)
+            return await bls.sign(h, key, 0)
         })().then((sign) => {
             console.log("sign: ", sign);
-            console.log("hash: ", Buffer.from(keccak256.arrayBuffer(txbytes)));
-            console.log("tx bytes: ", txbytes);
+            console.log("hash: ", h);
 
             let publicKey = bls.getPublicKey(key);
             tx.signature = gagarin.network.core.Signature.create({
@@ -77,7 +76,7 @@ function handleSubmit(n) {
 
             });
 
-            tx.from = Uint8Array.from([])
+            tx.from = Uint8Array.from([]);
             console.log(tx);
             let any = google.protobuf.Any.create(
                 {

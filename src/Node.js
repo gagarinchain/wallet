@@ -218,8 +218,6 @@ function findPeers(node, name) {
                 console.log(result);
                 resolve(result)
             })
-
-
         });
     });
 }
