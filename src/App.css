@@ -28,6 +28,11 @@ input[type=text] {
   width: 50%;
 }
 
+select.form-control {
+  width: 50%;
+  background-color: rgb(232, 240, 254)
+}
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

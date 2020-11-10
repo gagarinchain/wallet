@@ -38,6 +38,7 @@ function hash(tx) {
     buf.set(tx.data, offset);
     offset += tx.data.length;
 
+    console.log( "serialized for hashing: " + Buffer.from(buf).toString('hex'));
     return Buffer.from(keccak256.arrayBuffer(buf))
 }
 

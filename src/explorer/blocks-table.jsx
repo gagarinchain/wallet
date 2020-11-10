@@ -10,7 +10,7 @@ export class BlocksTable extends Component {
             last20 = this.props.last20.map(
                 item => {
                     if (item) {
-                        return <BlockShort block={item}/>
+                        return <BlockShort key={item.hash} block={item}/>
                     }
                 }
             );
